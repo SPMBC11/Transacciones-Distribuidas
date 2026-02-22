@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: bank-backend
+  profiles:
+    active: default
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+# Configuración Base de DataSources (placeholders listos para Docker Compose o local)
+app:
+  datasource:
+    nacional:
+      url: ${SPRING_DATASOURCE_NACIONAL_URL:jdbc:postgresql://localhost:5432/banco_nacional}
+      username: ${SPRING_DATASOURCE_NACIONAL_USERNAME:admin}
+      password: ${SPRING_DATASOURCE_NACIONAL_PASSWORD:admin}
+      driver-class-name: org.postgresql.Driver
+    internacional:
+      url: ${SPRING_DATASOURCE_INTERNACIONAL_URL:jdbc:mysql://localhost:3306/banco_internacional}
+      username: ${SPRING_DATASOURCE_INTERNACIONAL_USERNAME:root}
+      password: ${SPRING_DATASOURCE_INTERNACIONAL_PASSWORD:admin}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+# Configuración adicional requerida por el taller
+logging:
+  level:
+    root: INFO
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.bank.backend: DEBUG

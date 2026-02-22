@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15.6
+    platform: linux/x86_64
+    container_name: banco_nacional_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: banco_nacional
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - bank-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d banco_nacional"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0.36
+    platform: linux/x86_64
+    container_name: banco_internacional_db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: banco_internacional
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - bank-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bank-backend:latest
+    platform: linux/x86_64
+    container_name: bank-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_DATASOURCE_NACIONAL_URL=jdbc:postgresql://postgres:5432/banco_nacional
+      - SPRING_DATASOURCE_NACIONAL_USERNAME=admin
+      - SPRING_DATASOURCE_NACIONAL_PASSWORD=admin
+      - SPRING_DATASOURCE_INTERNACIONAL_URL=jdbc:mysql://mysql:3306/banco_internacional
+      - SPRING_DATASOURCE_INTERNACIONAL_USERNAME=root
+      - SPRING_DATASOURCE_INTERNACIONAL_PASSWORD=admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - bank-network
+    restart: unless-stopped
+
+networks:
+  bank-network:
+    driver: bridge
+
+volumes:
+  pg_data:
+  mysql_data:
