@@ -1,15 +1,14 @@
 package com.bank.backend.repository.nacional;
 
-import com.bank.backend.model.MovimientoNacional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.bank.backend.model.nacional.MovimientoNacional;
 
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repositorio para movimientos del Banco Nacional (PostgreSQL).
- */
+
 @Repository
 public interface MovimientoNacionalRepository extends JpaRepository<MovimientoNacional, Long> {
 

@@ -1,4 +1,4 @@
-package com.bank.backend.model;
+package com.bank.backend.model.nacional;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;

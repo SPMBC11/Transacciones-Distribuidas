@@ -1,6 +1,5 @@
 package com.bank.backend.repository.nacional;
 
-import com.bank.backend.model.CuentaNacional;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -8,11 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.bank.backend.model.nacional.CuentaNacional;
+
 import java.util.Optional;
 
-/**
- * Repositorio para cuentas del Banco Nacional (PostgreSQL).
- */
 @Repository
 public interface CuentaNacionalRepository extends JpaRepository<CuentaNacional, Long> {
 
