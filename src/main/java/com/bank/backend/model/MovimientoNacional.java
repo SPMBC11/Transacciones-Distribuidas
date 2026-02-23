@@ -5,8 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Entidad que mapea la tabla 'movimiento' en PostgreSQL (Banco Nacional).
- * Registra cada débito o crédito que ocurre en una cuenta nacional.
+ * Registra cada débito o crédito
  */
 @Entity
 @Table(name = "movimiento")
@@ -38,8 +37,7 @@ public class MovimientoNacional {
     private String descripcion;
 
     /**
-     * UUID de la transferencia distribuida.
-     * Vincula este movimiento con el crédito que ocurre en MySQL (Banco Internacional).
+     * Vincula en MySQL.
      */
     @Column(name = "referencia_transferencia", length = 50)
     private String referenciaTransferencia;
@@ -52,10 +50,8 @@ public class MovimientoNacional {
         fecha = LocalDateTime.now();
     }
 
-    // Constructors
     public MovimientoNacional() {}
 
-    // Getters y Setters
     public Long getId() { return id; }
 
     public Long getCuentaId() { return cuentaId; }

@@ -132,13 +132,10 @@ public class BancoNacionalService {
 
     /**
      * COMPENSACIÓN SAGA: revierte un débito previamente realizado.
-     *
-     * Se llama cuando el crédito en el Banco Internacional (MySQL) falla.
-     * Devuelve el dinero a la cuenta origen para dejar el sistema en estado consistente.
-     *
-     * @param numeroCuenta  Cuenta a la que se le devuelve el dinero
-     * @param monto         Monto a restaurar
-     * @param referencia    UUID de la transferencia original (para trazabilidad)
+
+     * @param numeroCuenta
+     * @param monto
+     * @param referencia
      */
     @Transactional(transactionManager = "nacionalTransactionManager")
     public void revertirDebito(String numeroCuenta, BigDecimal monto, String referencia) {

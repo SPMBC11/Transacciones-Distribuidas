@@ -4,18 +4,12 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Entidad que mapea la tabla 'cuenta' en PostgreSQL (Banco Nacional).
- *
- * El NacionalDataSourceConfig apunta a 'com.bank.backend.model.nacional',
- * así que esta clase es reconocida automáticamente por ese EntityManagerFactory.
- */
 @Entity
 @Table(name = "cuenta")
 public class CuentaNacional {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Mapea BIGSERIAL de PostgreSQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
 
     @Column(name = "numero_cuenta", unique = true, nullable = false, length = 20)
@@ -47,10 +41,8 @@ public class CuentaNacional {
         fechaActualizacion = LocalDateTime.now();
     }
 
-    // Constructors
     public CuentaNacional() {}
 
-    // Getters y Setters
     public Long getId() { return id; }
 
     public String getNumeroCuenta() { return numeroCuenta; }
