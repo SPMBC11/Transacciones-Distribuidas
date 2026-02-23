@@ -4,9 +4,6 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Registra cada débito o crédito
- */
 @Entity
 @Table(name = "movimiento")
 public class MovimientoNacional {
@@ -18,9 +15,6 @@ public class MovimientoNacional {
     @Column(name = "cuenta_id", nullable = false)
     private Long cuentaId;
 
-    /**
-     * Tipo de movimiento: "DEBITO" o "CREDITO"
-     */
     @Column(name = "tipo", nullable = false, length = 20)
     private String tipo;
 
@@ -37,7 +31,7 @@ public class MovimientoNacional {
     private String descripcion;
 
     /**
-     * Vincula en MySQL.
+     * en MySQL.
      */
     @Column(name = "referencia_transferencia", length = 50)
     private String referenciaTransferencia;
