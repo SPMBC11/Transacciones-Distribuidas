@@ -204,3 +204,171 @@ El patrón **SAGA**, especialmente en su variante orquestada o coreografiada, re
 
 ### Separación de Responsabilidades
 Para soportar SAGA dentro de la misma capa de aplicación o en microservicios, el primer paso es **aislar el stack de datos**. Cada Base de Datos tiene su propia configuración `@Configuration`, su propio DataSource (`NacionalDataSourceConfig`, `InternacionalDataSourceConfig`), su propio `EntityManagerFactory` y su gestor de transacciones independiente. Al separar los paquetes `repository.nacional` e `repository.internacional`, nos aseguramos que una transacción mal armada no use accidentalmente la conexión del otro banco, pilar fundamental para luego construir un servicio orquestador confiable.
+
+---
+
+## 📸 Capturas de Pantalla de Pruebas
+
+### 🖥️ Interfaz Web
+La interfaz web proporciona una forma intuitiva de realizar transferencias interbancarias y consultar el estado de las cuentas.
+
+**Pantalla principal con formulario de transferencias:**
+- Selector de cuenta origen (Banco Nacional o Internacional)
+- Selector de cuenta destino (Banco Nacional o Internacional)
+- Campo de monto con validación
+- Botón para ejecutar la transferencia
+
+![Interfaz Web - Formulario de Transferencia](docs/screenshots/Interfazgrafica.png)
+
+### ✅ Transferencia Exitosa: Nacional → Internacional
+**Prueba:** Transferencia de $500 desde BN-001 (Juan Pérez) a BI-001 (Laura Sánchez)
+
+**Resultado esperado:**
+- ✅ Saldo de BN-001 reducido en $500 (de $5,000 a $4,500)
+- ✅ Saldo de BI-001 incrementado en $500 (de $8,000 a $8,500)
+- ✅ Movimiento tipo DEBITO registrado en PostgreSQL
+- ✅ Movimiento tipo CREDITO registrado en MySQL
+- ✅ Ambas transacciones con la misma referencia UUID
+
+![Transferencia Nacional a Internacional](docs/screenshots/transferencia-nacional-internacional.png)
+
+### ✅ Transferencia Exitosa: Internacional → Nacional
+**Prueba:** Transferencia de $300 desde BI-002 (Pedro López) a BN-002 (María García)
+
+**Resultado esperado:**
+- ✅ Saldo de BI-002 reducido en $300 (de $3,000 a $2,700)
+- ✅ Saldo de BN-002 incrementado en $300 (de $10,000 a $10,300)
+- ✅ Transacción distribuida ejecutada correctamente
+
+![Transferencia Internacional a Nacional](docs/screenshots/transferencia-internacional-nacional.png)
+
+### ❌ Manejo de Errores: Fondos Insuficientes
+**Prueba:** Intentar transferir $20,000 desde BN-001 (saldo actual: $4,500)
+
+**Resultado esperado:**
+- ❌ Transferencia rechazada con error HTTP 400
+- ✅ Mensaje descriptivo: "Fondos insuficientes en cuenta origen"
+- ✅ Sin cambios en ninguna base de datos (rollback automático)
+- ✅ Sin movimientos registrados
+
+![Error Fondos Insuficientes](docs/screenshots/error-fondos-insuficientes.png)
+
+**Respuesta de la API:**
+```json
+{
+  "timestamp": "2026-02-23T10:30:45.123",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Fondos insuficientes en cuenta origen BN-001",
+  "path": "/api/transferencias/nacional-a-internacional"
+}
+```
+
+### ❌ Compensación SAGA: Cuenta Destino Inválida
+**Prueba:** Transferir desde BN-003 a cuenta inexistente "BI-999"
+
+**Resultado esperado:**
+- ✅ Paso 1 ejecutado: Débito exitoso en BN-003
+- ❌ Paso 2 fallido: Cuenta BI-999 no existe
+- ✅ Compensación activada: Reverso automático del débito
+- ✅ Saldo de BN-003 restaurado al valor original
+- ✅ Movimiento de compensación registrado con descripción "Reversión de transferencia fallida"
+
+![Compensación SAGA](docs/screenshots/saga-compensacion.png)
+
+**Logs del Backend:**
+```
+DEBUG - Iniciando transferencia: BN-003 -> BI-999 por $1000.00
+DEBUG - Paso 1: Débito en Banco Nacional completado
+ERROR - Paso 2: Cuenta destino BI-999 no encontrada
+WARN  - Iniciando compensación SAGA
+DEBUG - Revirtiendo débito en Banco Nacional
+INFO  - Compensación completada. Saldo restaurado en BN-003
+```
+
+### 📊 Consulta de Movimientos
+**Prueba:** Consultar historial de movimientos de cuenta BN-001
+
+**Resultado:**
+- Lista cronológica de todos los débitos y créditos
+- Información detallada: fecha, tipo, monto, saldo anterior y nuevo
+- Referencia UUID para rastrear transferencias distribuidas
+
+![Historial de Movimientos](docs/screenshots/movimientos-cuenta.png)
+
+### 🗄️ Verificación en Bases de Datos
+
+**PostgreSQL (Banco Nacional):**
+
+Comando para acceder a PostgreSQL y ejecutar consultas:
+```bash
+# Conectar a PostgreSQL
+docker exec -it banco_nacional_db psql -U admin -d banco_nacional
+
+# Comandos SQL para ejecutar dentro de psql:
+SELECT * FROM cuenta WHERE numero_cuenta = 'BN-001';
+SELECT * FROM movimiento WHERE cuenta_id = 1 ORDER BY fecha DESC;
+
+# Para salir de psql:
+\q
+```
+
+O ejecutar directamente sin entrar al shell:
+```bash
+docker exec -it banco_nacional_db psql -U admin -d banco_nacional -c "SELECT * FROM cuenta WHERE numero_cuenta = 'BN-001';"
+docker exec -it banco_nacional_db psql -U admin -d banco_nacional -c "SELECT * FROM movimiento WHERE cuenta_id = 1 ORDER BY fecha DESC;"
+```
+
+![Datos en PostgreSQL](docs/screenshots/postgresql-datos.png)
+
+**MySQL (Banco Internacional):**
+
+Comando para acceder a MySQL y ejecutar consultas:
+```bash
+# Conectar a MySQL
+docker exec -it banco_internacional_db mysql -uroot -padmin banco_internacional
+
+# Comandos SQL para ejecutar dentro de mysql:
+SELECT * FROM cuenta WHERE numeroCuenta = 'BI-001';
+SELECT * FROM movimiento WHERE cuentaId = 1 ORDER BY fecha DESC;
+
+# Para salir de mysql:
+exit
+```
+
+O ejecutar directamente sin entrar al shell:
+```bash
+docker exec -it banco_internacional_db mysql -uroot -padmin banco_internacional -e "SELECT * FROM cuenta WHERE numeroCuenta = 'BI-001';"
+docker exec -it banco_internacional_db mysql -uroot -padmin banco_internacional -e "SELECT * FROM movimiento WHERE cuentaId = 1 ORDER BY fecha DESC;"
+```
+
+![Datos en MySQL](docs/screenshots/mysql-datos.png)
+
+### 🐳 Docker Containers Status
+**Prueba:** Verificar que todos los servicios estén corriendo
+
+```bash
+$ docker compose ps
+NAME                  STATUS          PORTS
+banco_nacional_db     Up 2 minutes    0.0.0.0:5432->5432/tcp
+banco_internacional_db Up 2 minutes   0.0.0.0:3306->3306/tcp
+bank-backend          Up 1 minute     0.0.0.0:8080->8080/tcp
+```
+
+![Docker Status](docs/screenshots/docker-status.png)
+
+---
+
+## 💭 Reflexión Final
+
+La implementación de este sistema de transacciones distribuidas representó un desafío técnico significativo que permitió comprender en profundidad las complejidades de los sistemas bancarios modernos. La decisión más crítica fue elegir el patrón SAGA sobre el tradicional Two-Phase Commit (2PC), una elección que refleja las prioridades de arquitecturas orientadas a microservicios actuales.
+
+El patrón SAGA demostró ser superior en este contexto porque prioriza la disponibilidad y la tolerancia a fallos sobre la consistencia estricta instantánea. En sistemas bancarios reales, es preferible que las operaciones se completen eventualmente con mecanismos de compensación robustos, en lugar de mantener recursos bloqueados esperando confirmaciones sincrónicas que pueden fallar ante problemas de red o latencia entre sistemas heterogéneos. La implementación de transacciones compensatorias (`revertirDebito` y `revertirCredito`) garantiza la integridad del sistema incluso cuando pasos intermedios fallan.
+
+La arquitectura multi-datasource de Spring Boot permitió mantener la separación estricta entre los dos bancos, cada uno con su propio gestor de transacciones y EntityManagerFactory. Esta segregación no solo refleja la realidad de instituciones financieras independientes, sino que facilita la escalabilidad horizontal: cada banco puede crecer, optimizarse o migrar su infraestructura sin afectar al otro. El uso de bloqueos pesimistas (PESSIMISTIC_WRITE) previene condiciones de carrera en escenarios de alta concurrencia, crucial para mantener la consistencia de saldos.
+
+Dockerizar toda la infraestructura simplificó dramáticamente el despliegue y las pruebas, permitiendo replicar entornos de producción localmente. Los scripts de inicio automatizados reducen la fricción para nuevos desarrolladores y demuestran buenas prácticas de DevOps.
+
+Esta experiencia evidencia que los sistemas distribuidos modernos requieren abandonar paradigmas tradicionales de transacciones monolíticas. El trade-off entre consistencia fuerte y disponibilidad no es una debilidad, sino una característica diseñada conscientemente para sistemas resilientes que deben operar en entornos imperfectos de red y alta carga.
+
+---

@@ -236,40 +236,32 @@
                 <form id="transferenciaForm">
                     <div class="form-group">
                         <label for="cuentaOrigen">Cuenta Origen:</label>
-                        <select id="cuentaOrigen" required>
-                            <option value="">Seleccione una cuenta</option>
-                            <optgroup label="Banco Nacional (PostgreSQL)">
-                                <option value="BN-001">BN-001 - Juan Pérez</option>
-                                <option value="BN-002">BN-002 - María García</option>
-                                <option value="BN-003">BN-003 - Carlos Rodríguez</option>
-                                <option value="BN-004">BN-004 - Ana Martínez</option>
-                            </optgroup>
-                            <optgroup label="Banco Internacional (MySQL)">
-                                <option value="BI-001">BI-001 - Laura Sánchez</option>
-                                <option value="BI-002">BI-002 - Pedro López</option>
-                                <option value="BI-003">BI-003 - Sofia Hernández</option>
-                                <option value="BI-004">BI-004 - Diego Torres</option>
-                            </optgroup>
-                        </select>
+                        <input type="text" id="cuentaOrigen" list="cuentasOrigenList" placeholder="Seleccione o escriba una cuenta (ej: BN-001)" required>
+                        <datalist id="cuentasOrigenList">
+                            <option value="BN-001">BN-001 - Juan Pérez (Nacional)</option>
+                            <option value="BN-002">BN-002 - María García (Nacional)</option>
+                            <option value="BN-003">BN-003 - Carlos Rodríguez (Nacional)</option>
+                            <option value="BN-004">BN-004 - Ana Martínez (Nacional)</option>
+                            <option value="BI-001">BI-001 - Laura Sánchez (Internacional)</option>
+                            <option value="BI-002">BI-002 - Pedro López (Internacional)</option>
+                            <option value="BI-003">BI-003 - Sofia Hernández (Internacional)</option>
+                            <option value="BI-004">BI-004 - Diego Torres (Internacional)</option>
+                        </datalist>
                     </div>
 
                     <div class="form-group">
                         <label for="cuentaDestino">Cuenta Destino:</label>
-                        <select id="cuentaDestino" required>
-                            <option value="">Seleccione una cuenta</option>
-                            <optgroup label="Banco Nacional (PostgreSQL)">
-                                <option value="BN-001">BN-001 - Juan Pérez</option>
-                                <option value="BN-002">BN-002 - María García</option>
-                                <option value="BN-003">BN-003 - Carlos Rodríguez</option>
-                                <option value="BN-004">BN-004 - Ana Martínez</option>
-                            </optgroup>
-                            <optgroup label="Banco Internacional (MySQL)">
-                                <option value="BI-001">BI-001 - Laura Sánchez</option>
-                                <option value="BI-002">BI-002 - Pedro López</option>
-                                <option value="BI-003">BI-003 - Sofia Hernández</option>
-                                <option value="BI-004">BI-004 - Diego Torres</option>
-                            </optgroup>
-                        </select>
+                        <input type="text" id="cuentaDestino" list="cuentasDestinoList" placeholder="Seleccione o escriba una cuenta (ej: BI-001)" required>
+                        <datalist id="cuentasDestinoList">
+                            <option value="BN-001">BN-001 - Juan Pérez (Nacional)</option>
+                            <option value="BN-002">BN-002 - María García (Nacional)</option>
+                            <option value="BN-003">BN-003 - Carlos Rodríguez (Nacional)</option>
+                            <option value="BN-004">BN-004 - Ana Martínez (Nacional)</option>
+                            <option value="BI-001">BI-001 - Laura Sánchez (Internacional)</option>
+                            <option value="BI-002">BI-002 - Pedro López (Internacional)</option>
+                            <option value="BI-003">BI-003 - Sofia Hernández (Internacional)</option>
+                            <option value="BI-004">BI-004 - Diego Torres (Internacional)</option>
+                        </datalist>
                     </div>
 
                     <div class="form-group">
@@ -288,21 +280,17 @@
                 <h2>🔍 Consultar Cuenta</h2>
                 <div class="form-group">
                     <label for="cuentaConsulta">Seleccionar Cuenta:</label>
-                    <select id="cuentaConsulta">
-                        <option value="">Seleccione una cuenta</option>
-                        <optgroup label="Banco Nacional (PostgreSQL)">
-                            <option value="BN-001">BN-001 - Juan Pérez</option>
-                            <option value="BN-002">BN-002 - María García</option>
-                            <option value="BN-003">BN-003 - Carlos Rodríguez</option>
-                            <option value="BN-004">BN-004 - Ana Martínez</option>
-                        </optgroup>
-                        <optgroup label="Banco Internacional (MySQL)">
-                            <option value="BI-001">BI-001 - Laura Sánchez</option>
-                            <option value="BI-002">BI-002 - Pedro López</option>
-                            <option value="BI-003">BI-003 - Sofia Hernández</option>
-                            <option value="BI-004">BI-004 - Diego Torres</option>
-                        </optgroup>
-                    </select>
+                    <input type="text" id="cuentaConsulta" list="cuentasConsultaList" placeholder="Seleccione o escriba una cuenta (ej: BN-001)">
+                    <datalist id="cuentasConsultaList">
+                        <option value="BN-001">BN-001 - Juan Pérez (Nacional)</option>
+                        <option value="BN-002">BN-002 - María García (Nacional)</option>
+                        <option value="BN-003">BN-003 - Carlos Rodríguez (Nacional)</option>
+                        <option value="BN-004">BN-004 - Ana Martínez (Nacional)</option>
+                        <option value="BI-001">BI-001 - Laura Sánchez (Internacional)</option>
+                        <option value="BI-002">BI-002 - Pedro López (Internacional)</option>
+                        <option value="BI-003">BI-003 - Sofia Hernández (Internacional)</option>
+                        <option value="BI-004">BI-004 - Diego Torres (Internacional)</option>
+                    </datalist>
                 </div>
 
                 <div class="button-group">
