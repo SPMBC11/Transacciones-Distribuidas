@@ -29,7 +29,6 @@ Hemos creado scripts automatizados para cada sistema operativo que:
 1. ✅ Inician todos los servicios Docker
 2. ✅ Esperan a que las bases de datos estén listas
 3. ✅ Verifican que Spring Boot haya iniciado
-4. ✅ Abren automáticamente la interfaz web en tu navegador
 
 #### 🐧 Linux / macOS
 
