@@ -36,6 +36,7 @@ Se separaron las responsabilidades a nivel código para aislar las interacciones
    - `SPRING_DATASOURCE_NACIONAL_URL`, `SPRING_DATASOURCE_NACIONAL_USERNAME`, `SPRING_DATASOURCE_NACIONAL_PASSWORD`
    - `SPRING_DATASOURCE_INTERNACIONAL_URL`, `SPRING_DATASOURCE_INTERNACIONAL_USERNAME`, `SPRING_DATASOURCE_INTERNACIONAL_PASSWORD`
 7. Revisa los logs en nivel `DEBUG` para validar las conexiones JPA exitosas y confirmar que ambos DataSources están activos antes de implementar las operaciones SAGA.
+8. Abre el index.html en tu navegador
 
 ## ⚖️ Decisiones y Enfoque Arquitectónico (Trade-offs)
 

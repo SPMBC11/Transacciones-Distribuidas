@@ -13,6 +13,7 @@ services:
       POSTGRES_PASSWORD: admin
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./Schema-nacional-PostgreSQL.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - bank-network
     healthcheck:
@@ -32,6 +33,7 @@ services:
       MYSQL_ROOT_PASSWORD: admin
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./schema-internacional-mysql.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - bank-network
     healthcheck:
