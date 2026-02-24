@@ -16,26 +16,175 @@ Se separaron las responsabilidades a nivel código para aislar las interacciones
 - `com.bank.backend.repository.nacional`: Dedicado al EntityManagerFactory y repositorios apuntando a PostgreSQL.
 - `com.bank.backend.repository.internacional`: Dedicado al EntityManagerFactory y repositorios apuntando a MySQL.
 
-## 🚀 Instrucciones de Instalación
+## 🚀 Instrucciones de Instalación y Ejecución
 
-1. Asegúrate de tener instalado **Docker** y **Docker Compose** en tu máquina.
-2. Abre una terminal en la raíz del proyecto.
-3. Ejecuta el siguiente comando para construir la imagen del backend y levantar toda la infraestructura:
+### Prerequisitos
+- **Docker** y **Docker Compose** instalados en tu máquina
+- Java 17 (solo para desarrollo, no necesario si usas Docker)
+- Maven (solo para desarrollo, no necesario si usas Docker)
+
+### 🎯 Inicio Rápido (Recomendado)
+
+Hemos creado scripts automatizados para cada sistema operativo que:
+1. ✅ Inician todos los servicios Docker
+2. ✅ Esperan a que las bases de datos estén listas
+3. ✅ Verifican que Spring Boot haya iniciado
+4. ✅ Abren automáticamente la interfaz web en tu navegador
+
+#### 🐧 Linux / macOS
+
+```bash
+./start_linux.sh
+```
+
+**Nota:** El script requiere permisos de `sudo` para ejecutar comandos de Docker.
+
+#### 🪟 Windows
+
+```cmd
+start_windows.bat
+```
+
+**Nota:** Ejecutar como usuario normal (no requiere permisos de administrador si Docker está configurado correctamente).
+
+---
+
+### 🔧 Inicio Manual (Alternativa)
+
+Si prefieres controlar cada paso manualmente:
+
+1. **Levantar la infraestructura:**
    ```bash
-   docker-compose up -d --build
+   # Linux/macOS
+   sudo docker compose up -d --build
+   
+   # Windows (PowerShell o CMD)
+   docker compose up -d --build
    ```
-4. Los servicios quedarán así:
-   - PostgreSQL: `localhost:5432` (`POSTGRES_USER=admin`, `POSTGRES_PASSWORD=admin`)
-   - MySQL: `localhost:3306` (`root`, `MYSQL_ROOT_PASSWORD=admin`)
-   - Backend: `http://localhost:8080` (corriendo desde la imagen `bank-backend`).
-5. Verifica logs y salud:
-   - `docker logs banco_nacional_db`
-   - `docker logs banco_internacional_db`
-   - `docker logs bank-backend`
-6. Las propiedades de conexión se pueden sobreescribir vía variables de entorno (ya preparadas en `docker-compose.yml`):
-   - `SPRING_DATASOURCE_NACIONAL_URL`, `SPRING_DATASOURCE_NACIONAL_USERNAME`, `SPRING_DATASOURCE_NACIONAL_PASSWORD`
-   - `SPRING_DATASOURCE_INTERNACIONAL_URL`, `SPRING_DATASOURCE_INTERNACIONAL_USERNAME`, `SPRING_DATASOURCE_INTERNACIONAL_PASSWORD`
-7. Revisa los logs en nivel `DEBUG` para validar las conexiones JPA exitosas y confirmar que ambos DataSources están activos antes de implementar las operaciones SAGA.
+
+2. **Esperar a que los servicios estén listos** (pueden tomar 30-60 segundos):
+   - PostgreSQL estará disponible en el puerto **5432**
+   - MySQL estará disponible en el puerto **3306**
+   - Spring Boot Backend estará en **http://localhost:8080**
+
+3. **Verificar el estado de los servicios:**
+   ```bash
+   docker compose ps
+   ```
+
+4. **Abrir la interfaz web:**
+   - Abre el archivo `index.html` en tu navegador preferido
+   - O navega a: `file:///ruta/completa/al/proyecto/index.html`
+
+---
+
+### 📊 Servicios Disponibles
+
+Una vez iniciado el sistema, tendrás acceso a:
+
+| Servicio | URL/Puerto | Credenciales |
+|----------|-----------|--------------|
+| **Interfaz Web** | `index.html` | - |
+| **API REST** | `http://localhost:8080/api` | - |
+| **PostgreSQL** (Banco Nacional) | `localhost:5432` | admin / admin |
+| **MySQL** (Banco Internacional) | `localhost:3306` | root / admin |
+
+---
+
+### 🔍 Verificación de Logs
+
+Para verificar que todo esté funcionando correctamente:
+
+```bash
+# Ver logs del backend
+docker compose logs -f backend
+
+# Ver logs de PostgreSQL
+docker logs banco_nacional_db
+
+# Ver logs de MySQL
+docker logs banco_internacional_db
+
+# Ver todos los logs
+docker compose logs -f
+```
+
+---
+
+### 🛑 Detener los Servicios
+
+```bash
+# Detener servicios (mantiene los datos)
+docker compose down
+
+# Detener y eliminar volúmenes (borra todos los datos)
+docker compose down -v
+```
+
+---
+
+### 🔄 Reiniciar desde Cero
+
+Si quieres resetear todas las bases de datos y empezar de nuevo:
+
+```bash
+# Linux/macOS
+sudo docker compose down -v && sudo docker compose up -d --build
+
+# Windows
+docker compose down -v && docker compose up -d --build
+```
+
+---
+
+### 🌐 Endpoints API Disponibles
+
+#### Consultas de Cuentas
+- `GET /api/cuentas/nacional/{numeroCuenta}` - Información completa de cuenta nacional
+- `GET /api/cuentas/nacional/{numeroCuenta}/saldo` - Saldo de cuenta nacional
+- `GET /api/cuentas/nacional/{numeroCuenta}/movimientos` - Movimientos de cuenta nacional
+- `GET /api/cuentas/internacional/{numeroCuenta}` - Información completa de cuenta internacional
+- `GET /api/cuentas/internacional/{numeroCuenta}/saldo` - Saldo de cuenta internacional
+- `GET /api/cuentas/internacional/{numeroCuenta}/movimientos` - Movimientos de cuenta internacional
+
+#### Transferencias Interbancarias
+- `POST /api/transferencias/nacional-a-internacional` - Transferencia de Banco Nacional → Banco Internacional
+- `POST /api/transferencias/internacional-a-nacional` - Transferencia de Banco Internacional → Banco Nacional
+
+**Ejemplo de request:**
+```json
+{
+  "cuentaOrigen": "BN-001",
+  "cuentaDestino": "BI-001",
+  "monto": 1000.00
+}
+```
+
+---
+
+### 👥 Cuentas de Prueba
+
+#### Banco Nacional (PostgreSQL)
+- **BN-001** - Juan Pérez (Saldo inicial: $5,000)
+- **BN-002** - María García (Saldo inicial: $10,000)
+- **BN-003** - Carlos Rodríguez (Saldo inicial: $15,000)
+- **BN-004** - Ana Martínez (Saldo inicial: $7,500)
+
+#### Banco Internacional (MySQL)
+- **BI-001** - Laura Sánchez (Saldo inicial: $8,000)
+- **BI-002** - Pedro López (Saldo inicial: $3,000)
+- **BI-003** - Sofia Hernández (Saldo inicial: $12,000)
+- **BI-004** - Diego Torres (Saldo inicial: $6,000)
+
+---
+
+### ⚙️ Configuración Avanzada
+
+Las propiedades de conexión se pueden sobreescribir vía variables de entorno (ya preparadas en `docker-compose.yml`):
+- `SPRING_DATASOURCE_NACIONAL_URL`, `SPRING_DATASOURCE_NACIONAL_USERNAME`, `SPRING_DATASOURCE_NACIONAL_PASSWORD`
+- `SPRING_DATASOURCE_INTERNACIONAL_URL`, `SPRING_DATASOURCE_INTERNACIONAL_USERNAME`, `SPRING_DATASOURCE_INTERNACIONAL_PASSWORD`
+
+Los logs están configurados en nivel `DEBUG` para validar las conexiones JPA exitosas y confirmar que ambos DataSources están activos.
 
 ## ⚖️ Decisiones y Enfoque Arquitectónico (Trade-offs)
 

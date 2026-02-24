@@ -87,6 +87,68 @@ public class BancoInternacionalService {
         return cuenta;
     }
 
+    // Registra un débito en la cuenta (para transferencias Internacional → Nacional)
+    @Transactional(transactionManager = "internacionalTransactionManager")
+    public CuentaInternacional debitar(String numeroCuenta, BigDecimal monto, String referencia) {
+        log.info("[BancoInternacional] Iniciando débito de {} en cuenta {} | ref: {}", monto, numeroCuenta, referencia);
+
+        CuentaInternacional cuenta = cuentaRepository.findByNumeroCuentaWithLock(numeroCuenta)
+                .orElseThrow(() -> new RuntimeException("Cuenta origen no encontrada: " + numeroCuenta));
+
+        if (!cuenta.getActiva()) {
+            throw new RuntimeException("La cuenta " + numeroCuenta + " está inactiva");
+        }
+
+        if (cuenta.getSaldo().compareTo(monto) < 0) {
+            throw new RuntimeException("Saldo insuficiente en cuenta " + numeroCuenta
+                    + ". Saldo actual: " + cuenta.getSaldo() + ", monto requerido: " + monto);
+        }
+
+        BigDecimal saldoAnterior = cuenta.getSaldo();
+        BigDecimal saldoNuevo = saldoAnterior.subtract(monto);
+        cuenta.setSaldo(saldoNuevo);
+        cuentaRepository.save(cuenta);
+
+        MovimientoInternacional movimiento = new MovimientoInternacional();
+        movimiento.setCuentaId(cuenta.getId());
+        movimiento.setTipo("DEBITO");
+        movimiento.setMonto(monto);
+        movimiento.setSaldoAnterior(saldoAnterior);
+        movimiento.setSaldoNuevo(saldoNuevo);
+        movimiento.setDescripcion("Transferencia interbancaria - débito");
+        movimiento.setReferenciaTransferencia(referencia);
+        movimientoRepository.save(movimiento);
+
+        log.info("[BancoInternacional] Débito exitoso. Saldo anterior: {} → Saldo nuevo: {}", saldoAnterior, saldoNuevo);
+        return cuenta;
+    }
+
+    // SAGA: revierte un débito (compensación para transferencias Internacional → Nacional)
+    @Transactional(transactionManager = "internacionalTransactionManager")
+    public void revertirDebito(String numeroCuenta, BigDecimal monto, String referencia) {
+        log.warn("[BancoInternacional] COMPENSANDO - Revirtiendo débito de {} en cuenta {} | ref: {}", monto, numeroCuenta, referencia);
+
+        CuentaInternacional cuenta = cuentaRepository.findByNumeroCuentaWithLock(numeroCuenta)
+                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada para compensación: " + numeroCuenta));
+
+        BigDecimal saldoAnterior = cuenta.getSaldo();
+        BigDecimal saldoNuevo = saldoAnterior.add(monto);
+        cuenta.setSaldo(saldoNuevo);
+        cuentaRepository.save(cuenta);
+
+        MovimientoInternacional compensacion = new MovimientoInternacional();
+        compensacion.setCuentaId(cuenta.getId());
+        compensacion.setTipo("CREDITO");
+        compensacion.setMonto(monto);
+        compensacion.setSaldoAnterior(saldoAnterior);
+        compensacion.setSaldoNuevo(saldoNuevo);
+        compensacion.setDescripcion("COMPENSACION SAGA - débito revertido");
+        compensacion.setReferenciaTransferencia(referencia + "-REVERTIDO");
+        movimientoRepository.save(compensacion);
+
+        log.warn("[BancoInternacional] Compensación débito exitosa. Saldo restaurado: {} → {}", saldoAnterior, saldoNuevo);
+    }
+
     // SAGA: revierte un crédito 
     @Transactional(transactionManager = "internacionalTransactionManager")
     public void revertirCredito(String numeroCuenta, BigDecimal monto, String referencia) {
