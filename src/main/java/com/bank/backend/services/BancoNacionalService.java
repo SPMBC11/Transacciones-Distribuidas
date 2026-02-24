@@ -86,6 +86,37 @@ public class BancoNacionalService {
         return cuenta;
     }
 
+    // Registra un crédito en la cuenta (para transferencias Internacional → Nacional)
+    @Transactional(transactionManager = "nacionalTransactionManager")
+    public CuentaNacional acreditar(String numeroCuenta, BigDecimal monto, String referencia) {
+        log.info("[BancoNacional] Iniciando crédito de {} en cuenta {} | ref: {}", monto, numeroCuenta, referencia);
+
+        CuentaNacional cuenta = cuentaRepository.findByNumeroCuentaWithLock(numeroCuenta)
+                .orElseThrow(() -> new RuntimeException("Cuenta destino no encontrada: " + numeroCuenta));
+
+        if (!cuenta.getActiva()) {
+            throw new RuntimeException("La cuenta " + numeroCuenta + " está inactiva");
+        }
+
+        BigDecimal saldoAnterior = cuenta.getSaldo();
+        BigDecimal saldoNuevo = saldoAnterior.add(monto);
+        cuenta.setSaldo(saldoNuevo);
+        cuentaRepository.save(cuenta);
+
+        MovimientoNacional movimiento = new MovimientoNacional();
+        movimiento.setCuentaId(cuenta.getId());
+        movimiento.setTipo("CREDITO");
+        movimiento.setMonto(monto);
+        movimiento.setSaldoAnterior(saldoAnterior);
+        movimiento.setSaldoNuevo(saldoNuevo);
+        movimiento.setDescripcion("Transferencia interbancaria - crédito");
+        movimiento.setReferenciaTransferencia(referencia);
+        movimientoRepository.save(movimiento);
+
+        log.info("[BancoNacional] Crédito exitoso. Saldo anterior: {} → Saldo nuevo: {}", saldoAnterior, saldoNuevo);
+        return cuenta;
+    }
+
     @Transactional(transactionManager = "nacionalTransactionManager")
     public void revertirDebito(String numeroCuenta, BigDecimal monto, String referencia) {
         log.warn("[BancoNacional] COMPENSANDO - Revirtiendo débito de {} en cuenta {} | ref: {}", monto, numeroCuenta, referencia);
